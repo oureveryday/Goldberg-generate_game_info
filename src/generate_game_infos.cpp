@@ -6,6 +6,7 @@
 #include <fstream>
 #include <iomanip>
 #include <list>
+#include <getopt.h>
 
 #include <curl/curl.h>
 #include <nlohmann/json.hpp>
@@ -233,6 +234,10 @@ public:
 std::string steam_apikey;
 std::string app_id;
 std::string output_path;
+bool steamapi = false;
+bool path = false;
+bool photo = true;
+
 
 #if defined(WIN32) || defined(_WIN32)
 #include <windows.h>
@@ -266,6 +271,90 @@ static bool create_directory(std::string const& strPath)
 }
 
 #endif
+
+static void generate_achievementsxan105(CurlEasy &easy)
+{
+    std::string url = "https://api.xan105.com/steam/ach/";
+    url += app_id;
+    easy.set_url(url);
+    easy.perform();
+    try
+    {
+        std::ofstream ach_file(output_path + "/achievements.json", std::ios::trunc | std::ios::out);
+        nlohmann::json json = nlohmann::json::parse(easy.get_answer());
+        nlohmann::json output_json = nlohmann::json::array();
+
+        bool first = true;
+        int i = 0;
+        for (auto& item : json["data"]["achievement"]["list"].items())
+        {
+            output_json[i]["name"] = item.value()["name"];
+            output_json[i]["displayName"] = item.value()["displayName"];
+            output_json[i]["hidden"] = std::to_string(item.value()["hidden"].get<int>());
+            try
+            {
+                if( !item.value()["description"].is_null() )
+                    output_json[i]["description"] = item.value()["description"];
+                else
+                    output_json[i]["description"] = "";
+            }
+            catch (...)
+            {
+                output_json[i]["description"] = "";
+            }
+            
+            {
+                std::string icon_path = "images/" + item.value()["name"].get<std::string>() + ".jpg";
+                std::ofstream achievement_icon(output_path + "/" + icon_path, std::ios::out | std::ios::trunc | std::ios::binary);
+                if (!achievement_icon)
+                {
+                    std::cerr << "Cannot create achievement icon \"" << icon_path << "\"" << std::endl;
+                    return;
+                }
+                easy.set_url(item.value()["icon"]);
+                easy.perform();
+
+                std::string picture = easy.get_answer();
+                achievement_icon.write(picture.c_str(), picture.length());
+
+                output_json[i]["icon"] = icon_path;
+                
+            }
+            {
+                std::string icon_path = "images/" + item.value()["name"].get<std::string>() + "_gray.jpg";
+                std::ofstream achievement_icon(output_path + "/" + icon_path, std::ios::out | std::ios::trunc | std::ios::binary);
+                if (!achievement_icon)
+                {
+                    std::cerr << "Cannot create achievement icon \"" << icon_path << "\"" << std::endl;
+                    return;
+                }
+                easy.set_url(item.value()["icongray"]);
+                easy.perform();
+                
+                std::string picture = easy.get_answer();
+                achievement_icon.write(picture.c_str(), picture.length());
+
+                output_json[i]["icongray"] = icon_path;
+            }
+            ++i;
+        }
+        ach_file << std::setw(2) << output_json;
+    }
+    catch (std::exception& e)
+    {
+        std::cerr << "Failed to get infos: ";
+        long code;
+        if (easy.get_html_code(code) == CURLE_OK && code == 403)
+        {
+            std::cerr << "Error in webapi key";
+        }
+        else
+        {
+            std::cerr << "Error while parsing json. Try to go at " << url << " and see what you can do to build your achivements.json";
+        }
+        std::cerr << std::endl;
+    }
+}
 
 static void generate_achievements(CurlEasy &easy)
 {
@@ -535,6 +624,8 @@ static void generate_dlcs(CurlEasy& easy)
 
 int main(int argc, char **argv)
 {
+    opterr = 0;
+    int c;
     CurlGlobal& cglobal = CurlGlobal::Inst();
     cglobal.init();
 
@@ -543,22 +634,52 @@ int main(int argc, char **argv)
     {
         easy.skip_verifypeer();
 
-        if (argc > 2) {
-            app_id = argv[2];
-            steam_apikey = argv[1];
-        } else {
-            std::cout << "Usage: " << argv[0] << " steam_api_key app_id <output_path (default is folder with app_id/steam_settings)>" << std::endl;
-            std::cout << "Enter the game appid: ";
-            std::cin >> app_id;
-            std::cout << "Enter your webapi key: ";
-            std::cin.clear();
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-            std::cin >> steam_apikey;
+        while ((c = getopt (argc, argv, "s:o:p")) != -1)
+        {
+            switch (c)
+            {
+            case 's':
+                printf("Use steam API.\n");
+                steamapi = true;
+                steam_apikey = optarg;
+                break;
+            case 'o':
+                path = true;
+                output_path = optarg;
+                std::cout << "Outpath: " << output_path << std::endl;
+                break;
+            case 'p':
+                printf("Disabled generate achievement photos.\n");
+                photo = false;
+                break;
+            case '?':
+                if (optopt == 's')
+                fprintf (stderr, "Option -%s requires an argument.\n", optopt);
+                if (optopt == 'o')
+                fprintf (stderr, "Option -%s requires an argument.\n", optopt);
+                break;
+            }
         }
 
-        if (argc > 3) {
-            output_path = argv[3];
+        if (argv[optind] != NULL) {
+            app_id = argv[optind];
+            std::cout << "Appid: " <<app_id << std::endl;
         } else {
+            std::cout << "Usage: " << argv[0] << " app_id <-s steam_api_key> <-o output_path> <-p>" << std::endl;
+            std::cout << "-s: Using steam API instead of xan105 API" << std::endl;
+            std::cout << "-o: Output path(default is folder with app_id/steam_settings)" << std::endl;
+            std::cout << "-p: Disable generate achievement photos" << std::endl;
+            return -1;
+        }
+        
+        
+        if (steamapi == false)
+        {
+            printf("Use xan105 API\n");
+            steam_apikey = "";
+        }
+
+        if (path == false) {
             output_path = app_id;
             create_directory(output_path);
             output_path += "/steam_settings";
@@ -584,8 +705,18 @@ int main(int argc, char **argv)
         std::cout << "Generating DLC.txt" << std::endl;
         generate_dlcs(easy);
         std::cout << "Generating achievements" << std::endl;
-        generate_achievements(easy);
+        if(steamapi)
+        {
+            generate_achievements(easy);
+        }
+        else
+        {
+            generate_achievementsxan105(easy);
+        }
+       
+        if (steamapi){
         std::cout << "Generating items" << std::endl;
         generate_items(easy);
+        }
     }
 }
