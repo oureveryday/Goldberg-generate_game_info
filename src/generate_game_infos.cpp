@@ -303,6 +303,7 @@ static void generate_achievementsxan105(CurlEasy &easy)
                 output_json[i]["description"] = "";
             }
             
+            if (photo)
             {
                 std::string icon_path = "images/" + item.value()["name"].get<std::string>() + ".jpg";
                 std::ofstream achievement_icon(output_path + "/" + icon_path, std::ios::out | std::ios::trunc | std::ios::binary);
@@ -320,6 +321,7 @@ static void generate_achievementsxan105(CurlEasy &easy)
                 output_json[i]["icon"] = icon_path;
                 
             }
+            if (photo)
             {
                 std::string icon_path = "images/" + item.value()["name"].get<std::string>() + "_gray.jpg";
                 std::ofstream achievement_icon(output_path + "/" + icon_path, std::ios::out | std::ios::trunc | std::ios::binary);
@@ -388,7 +390,7 @@ static void generate_achievements(CurlEasy &easy)
             {
                 output_json[i]["description"] = "";
             }
-            
+            if (photo)
             {
                 std::string icon_path = "images/" + item.value()["name"].get<std::string>() + ".jpg";
                 std::ofstream achievement_icon(output_path + "/" + icon_path, std::ios::out | std::ios::trunc | std::ios::binary);
@@ -406,6 +408,7 @@ static void generate_achievements(CurlEasy &easy)
                 output_json[i]["icon"] = icon_path;
                 
             }
+            if (photo)
             {
                 std::string icon_path = "images/" + item.value()["name"].get<std::string>() + "_gray.jpg";
                 std::ofstream achievement_icon(output_path + "/" + icon_path, std::ios::out | std::ios::trunc | std::ios::binary);
