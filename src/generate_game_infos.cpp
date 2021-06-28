@@ -236,7 +236,7 @@ std::string app_id;
 std::string output_path;
 bool steamapi = false;
 bool path = false;
-bool photo = true;
+bool image = true;
 
 
 #if defined(WIN32) || defined(_WIN32)
@@ -303,7 +303,7 @@ static void generate_achievementsxan105(CurlEasy &easy)
                 output_json[i]["description"] = "";
             }
             
-            if (photo)
+            if (image)
             {
                 std::string icon_path = "images/" + item.value()["name"].get<std::string>() + ".jpg";
                 std::ofstream achievement_icon(output_path + "/" + icon_path, std::ios::out | std::ios::trunc | std::ios::binary);
@@ -321,7 +321,7 @@ static void generate_achievementsxan105(CurlEasy &easy)
                 output_json[i]["icon"] = icon_path;
                 
             }
-            if (photo)
+            if (image)
             {
                 std::string icon_path = "images/" + item.value()["name"].get<std::string>() + "_gray.jpg";
                 std::ofstream achievement_icon(output_path + "/" + icon_path, std::ios::out | std::ios::trunc | std::ios::binary);
@@ -390,7 +390,7 @@ static void generate_achievements(CurlEasy &easy)
             {
                 output_json[i]["description"] = "";
             }
-            if (photo)
+            if (image)
             {
                 std::string icon_path = "images/" + item.value()["name"].get<std::string>() + ".jpg";
                 std::ofstream achievement_icon(output_path + "/" + icon_path, std::ios::out | std::ios::trunc | std::ios::binary);
@@ -408,7 +408,7 @@ static void generate_achievements(CurlEasy &easy)
                 output_json[i]["icon"] = icon_path;
                 
             }
-            if (photo)
+            if (image)
             {
                 std::string icon_path = "images/" + item.value()["name"].get<std::string>() + "_gray.jpg";
                 std::ofstream achievement_icon(output_path + "/" + icon_path, std::ios::out | std::ios::trunc | std::ios::binary);
@@ -637,12 +637,12 @@ int main(int argc, char **argv)
     {
         easy.skip_verifypeer();
 
-        while ((c = getopt (argc, argv, "s:o:p")) != -1)
+        while ((c = getopt (argc, argv, "s:o:i")) != -1)
         {
             switch (c)
             {
             case 's':
-                printf("Use steam API.\n");
+                printf("Using steam API.\n");
                 steamapi = true;
                 steam_apikey = optarg;
                 break;
@@ -651,9 +651,9 @@ int main(int argc, char **argv)
                 output_path = optarg;
                 std::cout << "Outpath: " << output_path << std::endl;
                 break;
-            case 'p':
-                printf("Disabled generate achievement photos.\n");
-                photo = false;
+            case 'i':
+                printf("Disabled generate achievement images.\n");
+                image = false;
                 break;
             case '?':
                 if (optopt == 's')
@@ -668,18 +668,23 @@ int main(int argc, char **argv)
             app_id = argv[optind];
             std::cout << "Appid: " <<app_id << std::endl;
         } else {
-            std::cout << "Usage: " << argv[0] << " app_id <-s steam_api_key> <-o output_path> <-p>" << std::endl;
+            std::cout << "Usage: " << argv[0] << " app_id <-s steam_api_key> <-o output_path> <-i>" << std::endl;
             std::cout << "-s: Using steam API instead of xan105 API" << std::endl;
             std::cout << "-o: Output path(default is folder with app_id/steam_settings)" << std::endl;
-            std::cout << "-p: Disable generate achievement photos" << std::endl;
+            std::cout << "-i: Disable generate achievement images" << std::endl;
             return -1;
         }
         
         
         if (steamapi == false)
         {
-            printf("Use xan105 API\n");
+            printf("Using xan105 API\n");
             steam_apikey = "";
+        }
+
+        if (image == true)
+        {
+            printf("Enabled generate achievement images.\n");
         }
 
         if (path == false) {
