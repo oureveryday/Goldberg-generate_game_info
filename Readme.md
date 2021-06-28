@@ -1,15 +1,15 @@
 # Goldberg Generate Game Info
 
-A build and mod for goldberg Steam EMU generate_game_info.cpp
-Normal:Steam API key needed
-Mod xan105's api:Don't need steam API key (But can't generate items)
+A build and mod for goldberg Steam EMU generate_game_info.cpp  
+Normal:Steam API key needed  
+Mod xan105's api:Don't need steam API key (But can't generate items)  
 
 # Usage
 
-generate_game_infos.exe app_id <-s steam_api_key> <-o output_path> <-i>
--s: Using steam API instead of xan105 API
--o: Output path (default is folder with app_id/steam_settings)
--i: Disable generate achievement images
+generate_game_infos.exe app_id <-s steam_api_key> <-o output_path> <-i>  
+-s: Using steam API instead of xan105 API  
+-o: Output path (default is folder with app_id/steam_settings)  
+-i: Disable generate achievement images  
 
 # Build
 
