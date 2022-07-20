@@ -24,4 +24,4 @@ Library requirment:
  * json (https://github.com/nlohmann/json)
  * fifo_map (https://github.com/nlohmann/fifo_map)
 
-# Thanks for the api,xan105！
+# For Achievements API thanks [xan105](https://github.com/xan105/xan105)
