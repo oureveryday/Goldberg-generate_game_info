@@ -3,6 +3,7 @@
 A build and mod for goldberg Steam EMU generate_game_info.cpp  
 Normal:Steam API key needed  
 Mod xan105's api:Don't need steam API key (But can't generate items)  
+Source: https://gitlab.com/Mr_Goldberg/goldberg_emulator  
 
 # Usage
 
